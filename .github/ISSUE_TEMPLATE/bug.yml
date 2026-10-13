@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a reproducible problem using synthetic data.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Remove private notes, personal data, host details, tokens, and credentials from all text and attachments. For vulnerabilities, use https://github.com/Muatasim-Aswad/jotter/security/advisories/new. If that route is unavailable, submit only a request for a private reporting channel here; do not include security details.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+      description: For a private reporting-channel request, say only that you need one.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Use synthetic notes. Leave empty for a security-channel request.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Version and environment
+      description: Running/deployed identity from About Jotter, Chrome version, desktop/Android, and online/offline state. Omit private origins and device identifiers.

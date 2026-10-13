@@ -1,0 +1,90 @@
+{
+  "valid": [
+    { "name": "reused mutation identity error", "input": { "v": 1, "type": "error", "code": "mutation_mismatch", "message": "mutation identity does not match the original request", "mutationId": "mutation-1" } },
+    {
+      "name": "hello with pending mutations",
+      "input": { "v": 1, "type": "hello", "scratchpadId": "scratchpad-1", "clientId": "client-1", "sessionId": "session-1", "knownRevision": 7, "pendingMutationIds": ["mutation-1"] }
+    },
+    {
+      "name": "state with omitted optional conflicts",
+      "input": { "v": 1, "type": "state", "scratchpad": { "id": "scratchpad-1", "content": "hello", "revision": 7, "updatedAt": "2026-09-20T12:00:00Z" } }
+    },
+    {
+      "name": "state with null optional conflicts",
+      "input": { "v": 1, "type": "state", "scratchpad": { "id": "scratchpad-1", "content": "", "revision": 0, "updatedAt": "2026-09-20T12:00:00Z" }, "conflicts": null },
+      "expected": { "v": 1, "type": "state", "scratchpad": { "id": "scratchpad-1", "content": "", "revision": 0, "updatedAt": "2026-09-20T12:00:00Z" } }
+    },
+    {
+      "name": "empty content is a valid save",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "", "baseRevision": 0, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "line endings normalize to LF",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "one\r\ntwo\rthree", "baseRevision": 1, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-2" },
+      "expected": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "one\ntwo\nthree", "baseRevision": 1, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-2" }
+    },
+    {
+      "name": "acknowledgement",
+      "input": { "v": 1, "type": "ack", "scratchpadId": "scratchpad-1", "mutationId": "mutation-1", "revision": 8, "updatedAt": "2026-09-20T12:01:00.123Z" }
+    },
+    {
+      "name": "committed update",
+      "input": { "v": 1, "type": "update", "scratchpad": { "id": "scratchpad-1", "content": "updated", "revision": 8, "updatedAt": "2026-09-20T12:01:00Z" }, "mutationId": "mutation-1" }
+    },
+    {
+      "name": "preserved conflict",
+      "input": { "v": 1, "type": "conflict", "conflictId": "conflict-1", "scratchpadId": "scratchpad-1", "mutationId": "mutation-2", "submittedContent": "local", "baseRevision": 7, "serverContent": "remote", "serverRevision": 8, "clientId": "client-1", "sessionId": "session-1", "createdAt": "2026-09-20T12:02:00Z" }
+    },
+    {
+      "name": "error with omitted optionals",
+      "input": { "v": 1, "type": "error", "code": "invalid_state", "message": "save cannot proceed" }
+    },
+    {
+      "name": "error with null optionals",
+      "input": { "v": 1, "type": "error", "code": "storage_unavailable", "message": "storage unavailable", "mutationId": null, "retryAfterMs": null },
+      "expected": { "v": 1, "type": "error", "code": "storage_unavailable", "message": "storage unavailable" }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "unsupported protocol version",
+      "error": "unsupported_version",
+      "input": { "v": 2, "type": "hello", "scratchpadId": "scratchpad-1", "clientId": "client-1", "sessionId": "session-1", "knownRevision": 0, "pendingMutationIds": [] }
+    },
+    {
+      "name": "missing required content",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "baseRevision": 0, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "required content cannot be null",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": null, "baseRevision": 0, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "negative revision",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "x", "baseRevision": -1, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "fractional revision",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "x", "baseRevision": 1.5, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "revision beyond JavaScript safe integer",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "save", "scratchpadId": "scratchpad-1", "content": "x", "baseRevision": 9007199254740992, "clientId": "client-1", "sessionId": "session-1", "mutationId": "mutation-1" }
+    },
+    {
+      "name": "unknown envelope field",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "error", "code": "internal_error", "message": "failed", "content": "must not leak" }
+    },
+    {
+      "name": "optional field has invalid type",
+      "error": "invalid_message",
+      "input": { "v": 1, "type": "error", "code": "invalid_state", "message": "failed", "retryAfterMs": "soon" }
+    }
+  ]
+}

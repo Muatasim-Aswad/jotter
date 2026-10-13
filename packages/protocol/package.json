@@ -1,0 +1,36 @@
+{
+  "name": "@jotter/protocol",
+  "version": "1.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./content": {
+      "types": "./src/content.ts",
+      "default": "./src/content.ts"
+    }
+  },
+  "scripts": {
+    "format": "oxfmt --write src tests '!src/validators.js'",
+    "format:check": "oxfmt --check src tests '!src/validators.js'",
+    "lint": "oxlint src tests --ignore-pattern src/validators.js",
+    "test:unit": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muatasim-Aswad/jotter.git"
+  },
+  "homepage": "https://github.com/Muatasim-Aswad/jotter"
+}

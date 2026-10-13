@@ -1,0 +1,569 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jotter.invalid/protocol.schema.json",
+  "$defs": {
+    "Identifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "x-max-utf8-bytes": 128
+    },
+    "Content": {
+      "type": "string",
+      "x-max-utf8-bytes": 1048576,
+      "description": "Complete text, normalized to LF before enforcing the UTF-8 byte limit.",
+      "x-normalize-line-endings": true
+    },
+    "Revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$",
+      "maxLength": 40
+    },
+    "ErrorCode": {
+      "type": "string",
+      "enum": [
+        "stale_revision",
+        "content_too_large",
+        "unresolved_conflict",
+        "invalid_state",
+        "mutation_mismatch",
+        "storage_unavailable",
+        "invalid_message",
+        "unsupported_version",
+        "internal_error",
+        "not_found",
+        "method_not_allowed",
+        "invalid_origin",
+        "request_too_large",
+        "too_many_requests"
+      ],
+      "x-go-enum-names": [
+        "ErrorStaleRevision",
+        "ErrorContentTooLarge",
+        "ErrorUnresolvedConflict",
+        "ErrorInvalidState",
+        "ErrorMutationMismatch",
+        "ErrorStorageUnavailable",
+        "ErrorInvalidMessage",
+        "ErrorUnsupportedVersion",
+        "ErrorInternal",
+        "ErrorNotFound",
+        "ErrorMethodNotAllowed",
+        "ErrorInvalidOrigin",
+        "ErrorRequestTooLarge",
+        "ErrorTooManyRequests"
+      ]
+    },
+    "ScratchpadState": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "content": {
+          "$ref": "#/$defs/Content"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "id",
+        "content",
+        "revision",
+        "updatedAt"
+      ]
+    },
+    "ConflictRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "conflictId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "scratchpadId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "mutationId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "submittedContent": {
+          "$ref": "#/$defs/Content"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "serverContent": {
+          "$ref": "#/$defs/Content"
+        },
+        "serverRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "clientId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "sessionId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "conflictId",
+        "scratchpadId",
+        "mutationId",
+        "submittedContent",
+        "baseRevision",
+        "serverContent",
+        "serverRevision",
+        "clientId",
+        "sessionId",
+        "createdAt"
+      ]
+    },
+    "HelloEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "hello"
+        },
+        "scratchpadId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "clientId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "sessionId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "knownRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "pendingMutationIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Identifier"
+          }
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "scratchpadId",
+        "clientId",
+        "sessionId",
+        "knownRevision",
+        "pendingMutationIds"
+      ]
+    },
+    "StateEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "state"
+        },
+        "scratchpad": {
+          "$ref": "#/$defs/ScratchpadState"
+        },
+        "conflicts": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ConflictRecord"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "scratchpad"
+      ]
+    },
+    "SaveEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "save"
+        },
+        "scratchpadId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "content": {
+          "$ref": "#/$defs/Content"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "clientId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "sessionId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "mutationId": {
+          "$ref": "#/$defs/Identifier"
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "scratchpadId",
+        "content",
+        "baseRevision",
+        "clientId",
+        "sessionId",
+        "mutationId"
+      ]
+    },
+    "AckEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "ack"
+        },
+        "scratchpadId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "mutationId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "revision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "scratchpadId",
+        "mutationId",
+        "revision",
+        "updatedAt"
+      ]
+    },
+    "UpdateEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "update"
+        },
+        "scratchpad": {
+          "$ref": "#/$defs/ScratchpadState"
+        },
+        "mutationId": {
+          "$ref": "#/$defs/Identifier"
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "scratchpad",
+        "mutationId"
+      ]
+    },
+    "ConflictEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "conflict"
+        },
+        "conflictId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "scratchpadId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "mutationId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "submittedContent": {
+          "$ref": "#/$defs/Content"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "serverContent": {
+          "$ref": "#/$defs/Content"
+        },
+        "serverRevision": {
+          "$ref": "#/$defs/Revision"
+        },
+        "clientId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "sessionId": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/Timestamp"
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "conflictId",
+        "scratchpadId",
+        "mutationId",
+        "submittedContent",
+        "baseRevision",
+        "serverContent",
+        "serverRevision",
+        "clientId",
+        "sessionId",
+        "createdAt"
+      ],
+      "x-go-embed": "ConflictRecord"
+    },
+    "ErrorEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "type": "integer",
+          "const": 1
+        },
+        "type": {
+          "type": "string",
+          "const": "error"
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "mutationId": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Identifier"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "retryAfterMs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Revision"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "v",
+        "type",
+        "code",
+        "message"
+      ]
+    },
+    "Envelope": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/HelloEnvelope"
+        },
+        {
+          "$ref": "#/$defs/StateEnvelope"
+        },
+        {
+          "$ref": "#/$defs/SaveEnvelope"
+        },
+        {
+          "$ref": "#/$defs/AckEnvelope"
+        },
+        {
+          "$ref": "#/$defs/UpdateEnvelope"
+        },
+        {
+          "$ref": "#/$defs/ConflictEnvelope"
+        },
+        {
+          "$ref": "#/$defs/ErrorEnvelope"
+        }
+      ]
+    },
+    "BootstrapResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scratchpad": {
+          "$ref": "#/$defs/ScratchpadState"
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConflictRecord"
+          }
+        }
+      },
+      "required": [
+        "scratchpad",
+        "conflicts"
+      ]
+    },
+    "ConflictListResponse": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ConflictRecord"
+      }
+    },
+    "ResolveRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "$ref": "#/$defs/Content"
+        },
+        "baseRevision": {
+          "$ref": "#/$defs/Revision"
+        }
+      },
+      "required": [
+        "content",
+        "baseRevision"
+      ]
+    },
+    "ResolveResponse": {
+      "$ref": "#/$defs/ScratchpadState"
+    },
+    "HealthResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "live",
+            "ready",
+            "starting"
+          ]
+        }
+      },
+      "required": [
+        "status"
+      ]
+    },
+    "ValidationIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "message"
+      ]
+    },
+    "HttpError": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "type": "integer",
+          "minimum": 400,
+          "maximum": 599
+        },
+        "code": {
+          "$ref": "#/$defs/ErrorCode"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "$ref": "#/$defs/Identifier"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "issues": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ValidationIssue"
+          }
+        }
+      },
+      "required": [
+        "status",
+        "code",
+        "message",
+        "request_id"
+      ]
+    },
+    "HttpErrorResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/HttpError"
+        }
+      },
+      "required": [
+        "error"
+      ]
+    }
+  }
+}

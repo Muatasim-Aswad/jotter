@@ -1,0 +1,19 @@
+{
+  "required": [
+    "index.html",
+    "jotter.svg",
+    "manifest.webmanifest",
+    "sw.js",
+    "version.json",
+    "licenses.txt"
+  ],
+  "allowed": [
+    "index\\.html",
+    "jotter\\.svg",
+    "manifest\\.webmanifest",
+    "sw\\.js",
+    "version\\.json",
+    "assets/[A-Za-z0-9_-]+-[A-Za-z0-9_-]+\\.(js|css)",
+    "licenses\\.txt"
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "jotter",
+  "private": true,
+  "license": "MIT",
+  "pnpm": {
+    "overrides": {
+      "serialize-javascript": "7.1.2",
+      "source-map-js": "1.2.2"
+    }
+  },
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": "24.21.0",
+    "pnpm": "10.34.5"
+  },
+  "scripts": {
+    "build": "pnpm --filter @jotter/web build",
+    "format": "pnpm --recursive format && pnpm --dir apps/web exec oxfmt --write \"$PWD/scripts\"",
+    "format:check": "pnpm --recursive format:check && pnpm --dir apps/web exec oxfmt --check \"$PWD/scripts\"",
+    "lint": "pnpm --recursive lint && pnpm --dir apps/web exec oxlint --config \"$PWD/apps/web/.oxlintrc.json\" --deny-warnings \"$PWD/scripts\"",
+    "test:unit": "pnpm --recursive test:unit",
+    "typecheck": "pnpm --recursive typecheck"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.28.1"
+  },
+  "version": "1.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muatasim-Aswad/jotter.git"
+  },
+  "homepage": "https://github.com/Muatasim-Aswad/jotter"
+}
