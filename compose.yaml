@@ -1,0 +1,50 @@
+services:
+  jotter:
+    image: ${JOTTER_IMAGE:-ghcr.io/muatasim-aswad/jotter:v${APP_VERSION:?set APP_VERSION from root package.json}}
+    build:
+      context: .
+      # Use scripts/release.py image-build to supply exact source identity.
+      args:
+        APP_VERSION: ${APP_VERSION:?set APP_VERSION from root package.json}
+        SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH:-}
+        APP_REVISION: ${APP_REVISION:-}
+        APP_COMMIT_TIME: ${APP_COMMIT_TIME:-}
+        APP_BUILD_TIME: ${APP_BUILD_TIME:-}
+    pull_policy: never
+    environment:
+      AUTH_DISABLED: "true"
+      JOTTER_DATA_DIR: /data
+      JOTTER_ENV: production
+      JOTTER_LISTEN_ADDR: 0.0.0.0:8080
+      JOTTER_LOG_LEVEL: ${JOTTER_LOG_LEVEL:-info}
+      JOTTER_PUBLIC_ORIGIN: ${JOTTER_PUBLIC_ORIGIN:?set the public HTTPS origin}
+    ports:
+      - "127.0.0.1:${JOTTER_HOST_PORT:-8080}:8080"
+    volumes:
+      - type: bind
+        source: ${JOTTER_HOST_DATA_DIR:?set the host data directory}
+        target: /data
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:mode=1777,size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+    stop_grace_period: 15s
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1.0
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health/ready"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3

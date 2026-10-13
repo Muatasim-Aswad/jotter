@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  MISE_LOCKED_SCOPES: project
+
+jobs:
+  validate:
+    if: github.repository == 'Muatasim-Aswad/jotter'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      bundle-id: ${{ steps.bundle.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - run: bash scripts/release/install-mise.sh
+      - run: mise install --locked
+      - run: mise exec -- pnpm install --frozen-lockfile
+      - run: mise exec -- pnpm --filter @jotter/web exec playwright install --with-deps chromium
+      - name: Rehearse exact tag without publication
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: python3 scripts/release.py rehearse --require-tag --tag "$RELEASE_TAG" --commit "$RELEASE_COMMIT" --output "$RUNNER_TEMP/release-bundle"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: bundle
+        with:
+          name: release-bundle-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/release-bundle/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+  inspect:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.validate.outputs.bundle-id }}
+          path: ${{ runner.temp }}/downloaded-bundle
+          merge-multiple: true
+      - run: python3 scripts/release.py smoke-bundle --bundle "$RUNNER_TEMP/downloaded-bundle"
+
+  publish:
+    concurrency:
+      group: jotter-release-publish
+      cancel-in-progress: false
+    needs: [validate, inspect]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.validate.outputs.bundle-id }}
+          path: ${{ runner.temp }}/downloaded-bundle
+          merge-multiple: true
+      - run: bash scripts/release/install-mise.sh
+      - run: mise install --locked
+      - name: Publish saved bundle and tested image without rebuilding
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOTTER_IMMUTABLE_RELEASES_ENABLED: ${{ vars.JOTTER_IMMUTABLE_RELEASES_ENABLED }}
+        run: mise exec -- python3 scripts/release.py publish --bundle "$RUNNER_TEMP/downloaded-bundle"

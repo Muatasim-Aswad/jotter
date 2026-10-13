@@ -1,0 +1,10 @@
+{
+  "unit": "UTF-8 bytes after LF normalization",
+  "cases": [
+    { "name": "ASCII at limit", "value": "a", "repeat": 1048576, "valid": true },
+    { "name": "two-byte text at limit", "value": "é", "repeat": 524288, "valid": true },
+    { "name": "two-byte text over limit", "value": "é", "repeat": 524289, "valid": false },
+    { "name": "four-byte text at limit", "value": "😀", "repeat": 262144, "valid": true },
+    { "name": "four-byte text over limit", "value": "😀", "repeat": 262145, "valid": false }
+  ]
+}

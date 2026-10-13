@@ -1,0 +1,136 @@
+{
+  "valid": [
+    {
+      "name": "bootstrap",
+      "schema": "BootstrapResponse",
+      "input": {
+        "scratchpad": {
+          "id": "scratchpad-1",
+          "content": "text",
+          "revision": 4,
+          "updatedAt": "2026-09-20T12:00:00Z"
+        },
+        "conflicts": []
+      }
+    },
+    {
+      "name": "empty resolution",
+      "schema": "ResolveRequest",
+      "input": {
+        "content": "",
+        "baseRevision": 0
+      }
+    },
+    {
+      "name": "direct resolution result",
+      "schema": "ResolveResponse",
+      "input": {
+        "id": "scratchpad-1",
+        "content": "text",
+        "revision": 4,
+        "updatedAt": "2026-09-20T12:00:00Z"
+      }
+    },
+    {
+      "name": "conflict list",
+      "schema": "ConflictListResponse",
+      "input": []
+    },
+    {
+      "name": "correlated error",
+      "schema": "HttpErrorResponse",
+      "input": {
+        "error": {
+          "status": 409,
+          "code": "stale_revision",
+          "message": "scratchpad changed",
+          "request_id": "request-1"
+        }
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "name": "missing revision",
+      "schema": "ResolveRequest",
+      "input": {
+        "content": "text"
+      }
+    },
+    {
+      "name": "null content",
+      "schema": "ResolveRequest",
+      "input": {
+        "content": null,
+        "baseRevision": 0
+      }
+    },
+    {
+      "name": "unknown request field",
+      "schema": "ResolveRequest",
+      "input": {
+        "content": "text",
+        "baseRevision": 0,
+        "extra": true
+      }
+    },
+    {
+      "name": "unsafe response revision",
+      "schema": "ResolveResponse",
+      "input": {
+        "id": "scratchpad-1",
+        "content": "text",
+        "revision": 9007199254740992,
+        "updatedAt": "2026-09-20T12:00:00Z"
+      }
+    },
+    {
+      "name": "missing response timestamp",
+      "schema": "ResolveResponse",
+      "input": {
+        "id": "scratchpad-1",
+        "content": "text",
+        "revision": 4
+      }
+    },
+    {
+      "name": "invalid calendar date",
+      "schema": "ResolveResponse",
+      "input": {
+        "id": "scratchpad-1",
+        "content": "text",
+        "revision": 4,
+        "updatedAt": "2026-02-30T12:00:00Z"
+      }
+    },
+    {
+      "name": "response in non-UTC timezone",
+      "schema": "ResolveResponse",
+      "input": {
+        "id": "scratchpad-1",
+        "content": "text",
+        "revision": 4,
+        "updatedAt": "2026-09-20T12:00:00+02:00"
+      }
+    },
+    {
+      "name": "old error body",
+      "schema": "HttpErrorResponse",
+      "input": {
+        "code": "invalid_message",
+        "message": "invalid"
+      }
+    },
+    {
+      "name": "missing request ID",
+      "schema": "HttpErrorResponse",
+      "input": {
+        "error": {
+          "status": 400,
+          "code": "invalid_message",
+          "message": "invalid"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1151 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Jotter API",
+    "version": "1.0.0",
+    "description": "Private single-owner deployment. Access control belongs to the trusted HTTPS boundary; Origin checks are not authentication."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/v1/bootstrap": {
+      "get": {
+        "operationId": "bootstrap",
+        "summary": "Load canonical scratchpad and unresolved conflicts",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BootstrapResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/conflicts": {
+      "get": {
+        "operationId": "listConflicts",
+        "summary": "List preserved conflicts",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConflictListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clientId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            },
+            "description": "Supply clientId and sessionId together."
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            },
+            "description": "Supply clientId and sessionId together."
+          }
+        ]
+      }
+    },
+    "/api/v1/conflicts/{id}/resolve": {
+      "post": {
+        "operationId": "resolveConflict",
+        "summary": "Commit the chosen text against its current revision",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResolveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "liveness",
+        "summary": "Check process liveness",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "readiness",
+        "summary": "Check database readiness",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Startup or database dependency is not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ws": {
+      "get": {
+        "operationId": "connect",
+        "summary": "Upgrade using the configured browser Origin",
+        "responses": {
+          "101": {
+            "description": "WebSocket connection; messages follow x-websocket-messages"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or mutation conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Capacity limit reached",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Storage unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Identifier": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "x-max-utf8-bytes": 128
+      },
+      "Content": {
+        "type": "string",
+        "x-max-utf8-bytes": 1048576,
+        "description": "Complete text, normalized to LF before enforcing the UTF-8 byte limit.",
+        "x-normalize-line-endings": true
+      },
+      "Revision": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 9007199254740991
+      },
+      "Timestamp": {
+        "type": "string",
+        "format": "date-time",
+        "pattern": "Z$",
+        "maxLength": 40
+      },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "stale_revision",
+          "content_too_large",
+          "unresolved_conflict",
+          "invalid_state",
+          "mutation_mismatch",
+          "storage_unavailable",
+          "invalid_message",
+          "unsupported_version",
+          "internal_error",
+          "not_found",
+          "method_not_allowed",
+          "invalid_origin",
+          "request_too_large",
+          "too_many_requests"
+        ],
+        "x-go-enum-names": [
+          "ErrorStaleRevision",
+          "ErrorContentTooLarge",
+          "ErrorUnresolvedConflict",
+          "ErrorInvalidState",
+          "ErrorMutationMismatch",
+          "ErrorStorageUnavailable",
+          "ErrorInvalidMessage",
+          "ErrorUnsupportedVersion",
+          "ErrorInternal",
+          "ErrorNotFound",
+          "ErrorMethodNotAllowed",
+          "ErrorInvalidOrigin",
+          "ErrorRequestTooLarge",
+          "ErrorTooManyRequests"
+        ]
+      },
+      "ScratchpadState": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "content": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "content",
+          "revision",
+          "updatedAt"
+        ]
+      },
+      "ConflictRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "conflictId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "scratchpadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "mutationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "submittedContent": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "baseRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "serverContent": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "serverRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "clientId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "sessionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "conflictId",
+          "scratchpadId",
+          "mutationId",
+          "submittedContent",
+          "baseRevision",
+          "serverContent",
+          "serverRevision",
+          "clientId",
+          "sessionId",
+          "createdAt"
+        ]
+      },
+      "HelloEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "hello"
+          },
+          "scratchpadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "clientId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "sessionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "knownRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "pendingMutationIds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Identifier"
+            }
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "scratchpadId",
+          "clientId",
+          "sessionId",
+          "knownRevision",
+          "pendingMutationIds"
+        ]
+      },
+      "StateEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "state"
+          },
+          "scratchpad": {
+            "$ref": "#/components/schemas/ScratchpadState"
+          },
+          "conflicts": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ConflictRecord"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "scratchpad"
+        ]
+      },
+      "SaveEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "save"
+          },
+          "scratchpadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "content": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "baseRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "clientId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "sessionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "mutationId": {
+            "$ref": "#/components/schemas/Identifier"
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "scratchpadId",
+          "content",
+          "baseRevision",
+          "clientId",
+          "sessionId",
+          "mutationId"
+        ]
+      },
+      "AckEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "ack"
+          },
+          "scratchpadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "mutationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "revision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "updatedAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "scratchpadId",
+          "mutationId",
+          "revision",
+          "updatedAt"
+        ]
+      },
+      "UpdateEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "update"
+          },
+          "scratchpad": {
+            "$ref": "#/components/schemas/ScratchpadState"
+          },
+          "mutationId": {
+            "$ref": "#/components/schemas/Identifier"
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "scratchpad",
+          "mutationId"
+        ]
+      },
+      "ConflictEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "conflict"
+          },
+          "conflictId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "scratchpadId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "mutationId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "submittedContent": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "baseRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "serverContent": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "serverRevision": {
+            "$ref": "#/components/schemas/Revision"
+          },
+          "clientId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "sessionId": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "createdAt": {
+            "$ref": "#/components/schemas/Timestamp"
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "conflictId",
+          "scratchpadId",
+          "mutationId",
+          "submittedContent",
+          "baseRevision",
+          "serverContent",
+          "serverRevision",
+          "clientId",
+          "sessionId",
+          "createdAt"
+        ],
+        "x-go-embed": "ConflictRecord"
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "type": {
+            "type": "string",
+            "const": "error"
+          },
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "message": {
+            "type": "string"
+          },
+          "mutationId": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Identifier"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retryAfterMs": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Revision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "v",
+          "type",
+          "code",
+          "message"
+        ]
+      },
+      "Envelope": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/HelloEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/StateEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/SaveEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/AckEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/UpdateEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/ConflictEnvelope"
+          },
+          {
+            "$ref": "#/components/schemas/ErrorEnvelope"
+          }
+        ]
+      },
+      "BootstrapResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scratchpad": {
+            "$ref": "#/components/schemas/ScratchpadState"
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConflictRecord"
+            }
+          }
+        },
+        "required": [
+          "scratchpad",
+          "conflicts"
+        ]
+      },
+      "ConflictListResponse": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ConflictRecord"
+        }
+      },
+      "ResolveRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/Content"
+          },
+          "baseRevision": {
+            "$ref": "#/components/schemas/Revision"
+          }
+        },
+        "required": [
+          "content",
+          "baseRevision"
+        ]
+      },
+      "ResolveResponse": {
+        "$ref": "#/components/schemas/ScratchpadState"
+      },
+      "HealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "live",
+              "ready",
+              "starting"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ValidationIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "message"
+        ]
+      },
+      "HttpError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "message": {
+            "type": "string"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/Identifier"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationIssue"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message",
+          "request_id"
+        ]
+      },
+      "HttpErrorResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/HttpError"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+    }
+  },
+  "x-websocket-messages": [
+    "HelloEnvelope",
+    "StateEnvelope",
+    "SaveEnvelope",
+    "AckEnvelope",
+    "UpdateEnvelope",
+    "ConflictEnvelope",
+    "ErrorEnvelope"
+  ],
+  "x-protocol-version": 1
+}
