@@ -1,0 +1,19 @@
+name: Focused improvement
+description: Propose an improvement to writing or finding the same text across devices.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Discuss broad scope changes and questions at https://github.com/Muatasim-Aswad/jotter/discussions. Remove private notes, personal data, host details, and credentials. Report vulnerabilities privately at https://github.com/Muatasim-Aswad/jotter/security/advisories/new; see SECURITY.md if unavailable.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed behavior
+      description: Describe the writing task using synthetic examples.
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Alternatives and trade-offs
+      description: Include offline durability, privacy, or simplicity implications where relevant.

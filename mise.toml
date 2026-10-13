@@ -1,0 +1,89 @@
+[tools]
+go = "1.27.1"
+node = "24.21.0"
+pnpm = "10.34.5"
+"aqua:dominikh/go-tools/staticcheck" = "2026.2.1"
+"aqua:gitleaks/gitleaks" = "8.30.1"
+"aqua:rhysd/actionlint" = "1.7.12"
+"aqua:regclient/regclient/regctl" = "0.11.6"
+
+[tasks.dev]
+depends = ["build"]
+description = "Run the Go API and Vite development server"
+run = "server_pid=; web_pid=; cleanup() { test -z \"$server_pid\" || kill \"$server_pid\" 2>/dev/null || true; test -z \"$web_pid\" || kill \"$web_pid\" 2>/dev/null || true; }; trap cleanup EXIT INT TERM; (cd apps/server && go run ./cmd/jotter) & server_pid=$!; pnpm --filter @jotter/web dev & web_pid=$!; wait \"$server_pid\"; wait \"$web_pid\""
+
+[tasks.format]
+description = "Format Go and TypeScript sources"
+run = "gofmt -w $(rg --files apps/server scripts/release -g '*.go') && pnpm format"
+
+[tasks."format:check"]
+description = "Check formatting without modifying files"
+run = "test -z \"$(gofmt -l $(rg --files apps/server scripts/release -g '*.go'))\" && pnpm format:check"
+
+[tasks.lint]
+description = "Run Go and TypeScript linters"
+run = "(cd apps/server && go vet ./... && staticcheck ./...) && go vet scripts/release/go-notices.go && pnpm lint"
+
+[tasks.typecheck]
+description = "Type-check all TypeScript workspaces"
+run = "pnpm typecheck"
+
+[tasks."browser:install"]
+description = "Install the pinned Chromium browser"
+run = "pnpm --filter @jotter/web exec playwright install chromium"
+
+[tasks."test:unit"]
+description = "Run TypeScript unit and protocol contract tests"
+run = "pnpm test:unit"
+
+[tasks."test:go"]
+description = "Run Go unit and protocol contract tests"
+run = "cd apps/server && go test ./..."
+
+[tasks."test:e2e"]
+description = "Run production PWA end-to-end tests"
+run = "mise run build && pnpm --dir apps/web exec playwright test --project=chromium"
+
+[tasks."test:race"]
+description = "Run Go tests with the race detector"
+run = "cd apps/server && go test -race ./..."
+
+[tasks.build]
+description = "Build web assets, embed them, then compile the server"
+run = "rm -rf apps/web/dist apps/server/internal/webassets/dist .build && pnpm --filter @jotter/web build && mkdir -p apps/server/internal/webassets/dist .build && touch apps/server/internal/webassets/dist/.keep && cp -R apps/web/dist/. apps/server/internal/webassets/dist/ && cd apps/server && go build -o ../../.build/jotter ./cmd/jotter"
+
+[tasks.check]
+description = "Run the portable repository quality gate"
+run = "mise run contracts:check && mise run format:check && mise run lint && mise run typecheck && mise run test:unit && mise run test:go && mise run test:e2e"
+
+[tasks."contracts:generate"]
+description = "Generate Go and TypeScript contracts and validators from OpenAPI"
+run = "node scripts/generate-contracts.mjs"
+
+[tasks."contracts:check"]
+description = "Reject contract and validator drift"
+run = "node scripts/generate-contracts.mjs --check"
+
+[tasks.container]
+description = "Build a versioned image with explicit source identity"
+run = "python3 scripts/release.py image-build"
+
+[tasks."check:fast"]
+description = "Run contract, formatting, lint, type and unit checks before commit"
+run = "mise run contracts:check && mise run format:check && mise run lint && mise run typecheck && mise run test:unit && mise run test:go"
+
+[tasks.verify]
+description = "Run the complete local and CI release gate"
+run = "mise run check && mise run test:race && pnpm audit && python3 scripts/release.py check-version && python3 scripts/release.py self-test && actionlint .github/workflows/*.yml && python3 scripts/release.py scan-source && ./scripts/verify-container.sh"
+
+[tasks."hooks:install"]
+description = "Enable the repository pre-commit check"
+run = "git config core.hooksPath .githooks"
+
+[tasks."release:self-test"]
+description = "Exercise release safety without building or publishing"
+run = "python3 scripts/release.py self-test"
+
+[tasks."release:rehearse"]
+description = "Export and verify an exact clean release commit without publishing"
+run = "python3 scripts/release.py rehearse"

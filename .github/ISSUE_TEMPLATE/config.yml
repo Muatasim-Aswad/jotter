@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report
+    url: https://github.com/Muatasim-Aswad/jotter/security/advisories/new
+    about: Report vulnerabilities privately. If unavailable, request a private route without details using the bug form.
+  - name: Questions and ideas
+    url: https://github.com/Muatasim-Aswad/jotter/discussions
+    about: Ask questions and discuss scope here.

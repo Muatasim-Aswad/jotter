@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  MISE_LOCKED_SCOPES: project
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - run: bash scripts/release/install-mise.sh
+      - run: mise install --locked
+      - name: Scan redacted push or PR commit range
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && !github.event.deleted)
+        env:
+          SCAN_BEFORE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          SCAN_AFTER: ${{ github.event.pull_request.head.sha || github.event.after }}
+        run: |
+          if test "$SCAN_BEFORE" != 0000000000000000000000000000000000000000; then
+            git cat-file -e "$SCAN_BEFORE^{commit}" || git fetch --no-tags origin "$SCAN_BEFORE"
+          fi
+          python3 scripts/release.py scan-range --before "$SCAN_BEFORE" --after "$SCAN_AFTER"
+      - run: mise exec -- pnpm install --frozen-lockfile
+      - run: mise exec -- pnpm --filter @jotter/web exec playwright install --with-deps chromium
+      - run: mise run verify
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/web/.verify/playwright/
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
