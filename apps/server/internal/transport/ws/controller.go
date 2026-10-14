@@ -66,6 +66,19 @@ func (controller *Controller) serve(response http.ResponseWriter, request *http.
 		controller.writeError(request.Context(), connection, err)
 		return
 	}
+	id := fmt.Sprintf("connection-%d", controller.nextID.Add(1))
+	ctx, cancel := context.WithCancel(request.Context())
+	defer cancel()
+	value := &session{
+		id: id, clientID: hello.ClientID, sessionID: hello.SessionID,
+		outgoing: make(chan []byte, outboundQueueSize), close: connection.Close,
+	}
+	if !controller.hub.register(value) {
+		_ = connection.Close(websocket.StatusGoingAway, "server is stopping")
+		return
+	}
+	defer controller.hub.unregister(id)
+
 	state, err := controller.service.Bootstrap(request.Context())
 	if err != nil {
 		controller.writeError(request.Context(), connection, err)
@@ -85,17 +98,6 @@ func (controller *Controller) serve(response http.ResponseWriter, request *http.
 		return
 	}
 
-	id := fmt.Sprintf("connection-%d", controller.nextID.Add(1))
-	ctx, cancel := context.WithCancel(request.Context())
-	value := &session{
-		id: id, clientID: hello.ClientID, sessionID: hello.SessionID,
-		outgoing: make(chan []byte, outboundQueueSize), close: connection.Close,
-	}
-	if !controller.hub.register(value) {
-		_ = connection.Close(websocket.StatusGoingAway, "server is stopping")
-		cancel()
-		return
-	}
 	slog.Info("websocket connected", "connection_id", id, "request_id", transport.RequestID(ctx))
 	defer slog.Info("websocket disconnected", "connection_id", id, "request_id", transport.RequestID(ctx))
 	writerDone := make(chan struct{})

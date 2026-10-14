@@ -49,6 +49,8 @@ SQLite contains `scratchpads`, `conflicts`, and content-free `mutation_receipts`
 
 An accepted save looks up its mutation receipt before comparing revisions, updates content and revision, and records the receipt in one transaction. A stale save creates or returns one conflict containing submitted and server versions in one transaction. Conflict resolution compares the newest revision, commits the chosen content, and deletes the conflict atomically. Acknowledgements and broadcasts occur only after commit; the in-memory hub contains connections, never canonical content.
 
+WebSocket sessions subscribe before reading the initial snapshot. Committed updates queue during bootstrap; initial state is sent before those updates, and the client's revision guard discards updates already covered by the snapshot.
+
 ## Production boundary
 
 Production requires an explicit HTTPS public origin and `AUTH_DISABLED=true`. HTTP requests carrying an unexpected `Origin` and WebSocket upgrades without the exact configured origin are rejected. The configured public host and loopback hosts are accepted; other hosts are rejected. The reverse proxy must preserve the configured host. HTTP bodies and WebSocket messages are bounded, document content is capped at 1 MiB of normalized UTF-8, and browser responses receive a restrictive same-origin CSP and standard isolation headers. The inline-style CSP exception exists only because the conflict screen constructs its local style element at runtime; network schemes remain disallowed.
