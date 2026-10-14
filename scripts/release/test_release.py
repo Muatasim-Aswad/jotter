@@ -246,9 +246,10 @@ class ReleaseSafety(unittest.TestCase):
             config_digest, manifest_digest = image_archives(bundle)
             release.archive_normalized(source, names, bundle / "jotter-1.0.0-source.tar.gz", "jotter-1.0.0", epoch)
             release.archive_normalized(binary, ["jotter", "LICENSE", "DEPENDENCY-NOTICES.txt"], bundle / "jotter-1.0.0-linux-amd64.tar.gz", "jotter-1.0.0", epoch)
-            release.write_json(bundle / "PROVENANCE.json", {"schema": 1, "builder": release.BUILDKIT, "repository": release.REPOSITORY, "image": release.IMAGE,
+            release.write_json(bundle / "PROVENANCE.json", {"schema": 2, "builder": release.BUILDKIT, "repository": release.REPOSITORY, "image": release.IMAGE,
                                "identity": identity, "tag": "v1.0.0", "sourceDateEpoch": epoch, "platform": "linux/amd64", "imageConfigDigest": config_digest,
                                "imageDigest": manifest_digest, "sourceInventory": names, "binaryInventory": ["DEPENDENCY-NOTICES.txt", "LICENSE", "jotter"],
+                               "imageExports": {name: release.sha256(bundle / name) for name in release.IMAGE_EXPORTS},
                                "dependencyNoticesSha256": release.sha256(binary / "DEPENDENCY-NOTICES.txt"),
                                "runtimeInventory": {"usr/share/licenses/jotter/DEPENDENCY-NOTICES.txt": {"sha256": release.sha256(binary / "DEPENDENCY-NOTICES.txt")}},
                                "releaseNotes": "Synthetic release notes.",
@@ -256,6 +257,13 @@ class ReleaseSafety(unittest.TestCase):
             release.write_json(bundle / "BUILD-ATTEMPT.json", {"schema": 1, "revision": identity["revision"], "startedAt": release.utc(epoch), "endedAt": release.utc(epoch + 1), "published": False})
             (bundle / "SHA256SUMS").write_text(release.checksum_manifest(bundle))
             release.check_bundle(bundle)
+            self.assertNotIn("image.tar", (bundle / "SHA256SUMS").read_text())
+            archive = bundle / "docker-image.tar"
+            original = archive.read_bytes()
+            archive.write_bytes(original + b"tampered")
+            with self.assertRaisesRegex(release.ReleaseError, "CI image export checksum mismatch"):
+                release.check_bundle(bundle)
+            archive.write_bytes(original)
             (binary / "DEPENDENCY-NOTICES.txt").write_text("tampered notices")
             release.archive_normalized(binary, ["jotter", "LICENSE", "DEPENDENCY-NOTICES.txt"], bundle / "jotter-1.0.0-linux-amd64.tar.gz", "jotter-1.0.0", epoch)
             (bundle / "SHA256SUMS").write_text(release.checksum_manifest(bundle))
@@ -281,7 +289,7 @@ class ReleaseSafety(unittest.TestCase):
             provenance = {"identity": identity, "tag": "v1.0.0", "imageDigest": "sha256:" + "a" * 64}
             for name in release.bundle_names("1.0.0"):
                 (bundle / name).write_text("synthetic " + name)
-            hashes = {name: release.sha256(bundle / name) for name in release.bundle_names("1.0.0")}
+            hashes = {name: release.sha256(bundle / name) for name in release.release_names("1.0.0")}
             calls = []
             def fake_api(path, method="GET", body=None, raw=False):
                 calls.append((path, method))
@@ -308,3 +316,39 @@ class ReleaseSafety(unittest.TestCase):
         with patch.object(release, "api", side_effect=AssertionError("publication attempted")), patch.object(release, "source_identity", side_effect=release.ReleaseError("dirty")):
             with self.assertRaises(release.ReleaseError):
                 release.rehearse(type("Args", (), {"commit": "HEAD", "tag": "v1.0.0", "require_tag": False})())
+
+    def test_draft_uploads_public_assets_without_ci_image_exports(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            bundle = Path(temporary)
+            identity = {"version": "1.0.0", "revision": "a" * 40}
+            provenance = {"identity": identity, "tag": "v1.0.0", "imageDigest": "sha256:" + "a" * 64}
+            for name in release.bundle_names("1.0.0"):
+                (bundle / name).write_text("synthetic " + name)
+            uploaded = {}
+            draft = {"id": 1, "tag_name": "v1.0.0", "prerelease": False, "draft": True,
+                     "upload_url": "https://uploads.github.com/assets{?name,label}"}
+
+            def fake_api(path, method="GET", body=None, raw=False):
+                if method == "POST":
+                    name = release.urllib.parse.parse_qs(release.urllib.parse.urlparse(path).query)["name"][0]
+                    self.assertNotIn(name, release.IMAGE_EXPORTS)
+                    self.assertEqual(body, (bundle / name).read_bytes())
+                    uploaded[name] = release.sha256(bundle / name)
+                    return {}
+                if method == "PATCH":
+                    return {**draft, "draft": False, "immutable": True}
+                if path == "":
+                    return {"private": False}
+                if path == "/releases/latest":
+                    return {"tag_name": "v1.0.0"}
+                return draft
+
+            environment = {"GITHUB_REPOSITORY": release.REPOSITORY, "GITHUB_REF": "refs/tags/v1.0.0", "GITHUB_SHA": identity["revision"],
+                           "JOTTER_IMMUTABLE_RELEASES_ENABLED": "true", "GITHUB_ACTOR": "synthetic", "GITHUB_TOKEN": "synthetic"}
+            with patch.dict(os.environ, environment), patch.object(release, "check_bundle", return_value=provenance), \
+                 patch.object(release, "api", side_effect=fake_api), patch.object(release, "resolve_remote_tag", return_value=identity["revision"]), \
+                 patch.object(release, "remote_assets", side_effect=lambda current: dict(uploaded)), \
+                 patch.object(release, "registry_digest", return_value=provenance["imageDigest"]), patch.object(release, "run"), patch("builtins.print"):
+                release.publish(type("Args", (), {"bundle": str(bundle)})())
+            self.assertEqual(set(uploaded), set(release.release_names("1.0.0")))
+            self.assertFalse(set(uploaded).intersection(release.IMAGE_EXPORTS))

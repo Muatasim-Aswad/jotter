@@ -4,6 +4,10 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+### Changed
+
+- Future container releases use GHCR only; Docker/OCI exports stay internal to CI instead of becoming release downloads.
+
 ## [1.0.1]
 
 ### Changed

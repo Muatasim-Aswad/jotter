@@ -288,18 +288,25 @@ def smoke_binary(binary, identity):
                     process.wait()
 
 
-def bundle_names(version):
-    return ["BUILD-ATTEMPT.json", "PROVENANCE.json", "SHA256SUMS", "docker-image.tar", "image.tar",
+IMAGE_EXPORTS = ("docker-image.tar", "image.tar")
+
+
+def release_names(version):
+    return ["BUILD-ATTEMPT.json", "PROVENANCE.json", "SHA256SUMS",
             f"jotter-{version}-linux-amd64.tar.gz", f"jotter-{version}-source.tar.gz"]
 
 
+def bundle_names(version):
+    return release_names(version) + list(IMAGE_EXPORTS)
+
+
 def checksum_manifest(bundle):
-    return "".join(f"{sha256(bundle / name)}  {name}\n" for name in sorted(inventory(bundle)) if name != "SHA256SUMS")
+    return "".join(f"{sha256(bundle / name)}  {name}\n" for name in sorted(inventory(bundle)) if name not in ("SHA256SUMS", *IMAGE_EXPORTS))
 
 
 def check_bundle(bundle):
     provenance = json.loads((bundle / "PROVENANCE.json").read_text())
-    require(provenance["schema"] == 1 and provenance["builder"] == BUILDKIT, "bundle build policy mismatch")
+    require(provenance["schema"] == 2 and provenance["builder"] == BUILDKIT, "bundle build policy mismatch")
     identity = provenance["identity"]
     validate_version(identity["version"], provenance["tag"])
     require(provenance["repository"] == REPOSITORY and provenance["image"] == IMAGE, "bundle repository mismatch")
@@ -307,6 +314,9 @@ def check_bundle(bundle):
     require(identity["committedAt"] == identity["builtAt"] == utc(provenance["sourceDateEpoch"]), "bundle timestamp policy mismatch")
     exact_inventory(inventory(bundle), bundle_names(identity["version"]), "bundle")
     require((bundle / "SHA256SUMS").read_text() == checksum_manifest(bundle), "bundle checksum mismatch")
+    exact_inventory(provenance["imageExports"], IMAGE_EXPORTS, "CI image exports")
+    for name, digest in provenance["imageExports"].items():
+        require(sha256(bundle / name) == digest, "CI image export checksum mismatch: " + name)
     attempt = json.loads((bundle / "BUILD-ATTEMPT.json").read_text())
     require(attempt["schema"] == 1 and attempt["revision"] == identity["revision"] and attempt["published"] is False, "build attempt identity mismatch")
     require(dt.datetime.fromisoformat(attempt["startedAt"]) <= dt.datetime.fromisoformat(attempt["endedAt"]), "build attempt timestamps out of order")
@@ -405,10 +415,11 @@ def rehearse(args):
         config_digest = validate_image_archive(bundle / "docker-image.tar")
         image_digest = validate_oci_archive(bundle / "image.tar", config_digest)
         scan(exported, env, bundle)
-        write_json(bundle / "PROVENANCE.json", {"schema": 1, "repository": REPOSITORY, "image": IMAGE,
+        write_json(bundle / "PROVENANCE.json", {"schema": 2, "repository": REPOSITORY, "image": IMAGE,
                    "identity": identity, "tag": tag, "sourceDateEpoch": epoch, "platform": "linux/amd64",
                    "releaseNotes": release_notes((pristine / "CHANGELOG.md").read_text(), identity["version"]),
                    "imageConfigDigest": config_digest, "imageDigest": image_digest, "localImage": image, "builder": BUILDKIT, "sourceInventory": expected,
+                   "imageExports": {name: sha256(bundle / name) for name in IMAGE_EXPORTS},
                    "dependencyNoticesSha256": sha256(packaged / "DEPENDENCY-NOTICES.txt"), "webInventory": web_files, "runtimeInventory": runtime_files, "binaryInventory": ["DEPENDENCY-NOTICES.txt", "LICENSE", "jotter"],
                    "gate": "mise run verify", "toolLockSha256": sha256(pristine / "mise.lock"),
                    "dependencyLockSha256": sha256(pristine / "pnpm-lock.yaml")})
@@ -712,7 +723,7 @@ def publish(args):
         matches = [item for item in releases if item["tag_name"] == tag]
         require(len(matches) <= 1, "duplicate remote releases for tag")
         release = matches[0] if matches else None
-    expected = {name: sha256(bundle / name) for name in bundle_names(identity["version"])}
+    expected = {name: sha256(bundle / name) for name in release_names(identity["version"])}
     if release:
         require(release["tag_name"] == tag and not release["prerelease"], "release identity mismatch")
         require(release["draft"] or release.get("immutable") is True, "published release is not immutable")
