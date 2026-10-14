@@ -8,13 +8,12 @@ Root `package.json` owns the product version; workspace versions, the Compose de
 MISE_LOCKED_SCOPES=project mise install --locked
 pnpm install --frozen-lockfile
 mise run browser:install
-mise run verify
-python3 scripts/release.py rehearse --commit HEAD --tag v1.0.1 --output .build/release-bundle
+mise run release:rehearse
 python3 scripts/release.py check-bundle --bundle .build/release-bundle
 python3 scripts/release.py smoke-bundle --bundle .build/release-bundle
 ```
 
-The rehearsal publishes nothing. It rejects dirty/untracked sources and mismatched versions, exports only `git archive` of the exact commit, installs pinned inputs, runs the full gate, scans source/artifacts with redacted Gitleaks, checks explicit inventories, and smoke-tests the Linux amd64 binary and tested container. The output directory must not already exist; retain accepted bytes for retries. A later `mise run build` clears `.build`, so preserve accepted bundles in a protected location before building again.
+The [release driver](../scripts/release.py) defaults to `HEAD`, derives the tag from `package.json`, and writes `.build/release-bundle`. Use `mise run release:rehearse -- --output /path/to/new-bundle` to choose another location. The rehearsal publishes nothing. It rejects dirty/untracked sources and mismatched versions, exports only `git archive` of the exact commit, installs pinned inputs, runs the full gate, scans source/artifacts with redacted Gitleaks, checks explicit inventories, and smoke-tests the Linux amd64 binary and tested container. The output directory must not already exist; retain accepted bytes for retries. A later `mise run build` clears `.build`, so preserve accepted bundles in a protected location before building again.
 
 The CI bundle contains source and Linux amd64 binary archives, `SHA256SUMS`, `PROVENANCE.json`, `BUILD-ATTEMPT.json`, and temporary OCI/Docker image exports for verification and registry import. Only the five public assets are attached to GitHub releases and listed in `SHA256SUMS`; GHCR is the sole image distribution path. Provenance schema 2 checks the internal image exports separately and records the published image digest. Existing immutable releases retain their original assets and format. Binary downloads include `LICENSE` and generated `DEPENDENCY-NOTICES.txt`; containers carry them in `/usr/share/licenses/jotter/`. Web dependency notices are served at `/licenses.txt`. Build scripts copy notices from the installed locked dependencies, including their versions and license hashes. Identity and normalized archive timestamps use commit-derived `SOURCE_DATE_EPOCH`; provenance records source/runtime inventories and digests, while build-attempt evidence records actual times and tool versions.
 
