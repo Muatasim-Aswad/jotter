@@ -1,10 +1,13 @@
 package wstransport
 
 import (
+	"bytes"
 	"context"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -59,8 +62,15 @@ func TestControllerHandshakesAcknowledgesAndBroadcastsCommittedState(t *testing.
 	}
 	mux := http.NewServeMux()
 	controller.Register(mux)
-	server := httptest.NewServer(mux)
-	defer server.Close()
+	releaseState := make(chan struct{})
+	release := sync.OnceFunc(func() { close(releaseState) })
+	server := httptest.NewUnstartedServer(mux)
+	server.Listener = &heldStateListener{Listener: server.Listener, release: releaseState}
+	server.Start()
+	t.Cleanup(func() {
+		release()
+		server.Close()
+	})
 
 	first := dialTestClient(t, server.URL)
 	defer first.CloseNow()
@@ -72,6 +82,7 @@ func TestControllerHandshakesAcknowledgesAndBroadcastsCommittedState(t *testing.
 	save := &protocol.SaveEnvelope{V: 1, Type: "save", ScratchpadID: "scratchpad", Content: "committed", BaseRevision: 0, ClientID: "client-1", SessionID: "session-1", MutationID: "mutation-1"}
 	writeTestEnvelope(t, first, save)
 	ack := readEnvelope[*protocol.AckEnvelope](t, first)
+	release()
 	update := readEnvelope[*protocol.UpdateEnvelope](t, second)
 	if ack.Revision != 1 || update.Scratchpad.Content != "committed" || update.Scratchpad.Revision != 1 {
 		t.Fatalf("ack/update = %#v / %#v", ack, update)
@@ -82,6 +93,33 @@ func TestControllerHandshakesAcknowledgesAndBroadcastsCommittedState(t *testing.
 	if duplicate.Revision != ack.Revision {
 		t.Fatalf("duplicate revision = %d, want %d", duplicate.Revision, ack.Revision)
 	}
+}
+
+type heldStateListener struct {
+	net.Listener
+	accepted atomic.Uint64
+	release  <-chan struct{}
+}
+
+func (listener *heldStateListener) Accept() (net.Conn, error) {
+	connection, err := listener.Listener.Accept()
+	if err == nil && listener.accepted.Add(1) == 2 {
+		return &heldStateConnection{Conn: connection, release: listener.release}, nil
+	}
+	return connection, err
+}
+
+type heldStateConnection struct {
+	net.Conn
+	release <-chan struct{}
+}
+
+func (connection *heldStateConnection) Write(data []byte) (int, error) {
+	written, err := connection.Conn.Write(data)
+	if err == nil && bytes.Contains(data, []byte(`"type":"state"`)) {
+		<-connection.release
+	}
+	return written, err
 }
 
 func TestControllerRejectsUnexpectedOrigin(t *testing.T) {

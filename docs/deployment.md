@@ -21,13 +21,12 @@ Requires Git and Docker with Compose. The Dockerfile builds the web assets and s
 ```sh
 git clone https://github.com/Muatasim-Aswad/jotter.git
 cd jotter
-docker build --platform linux/amd64 -t jotter:local .
-JOTTER_IMAGE=jotter:local JOTTER_PUBLIC_ORIGIN=https://jotter.example docker compose up -d --no-build --pull never
+export JOTTER_IMAGE=jotter:local JOTTER_PUBLIC_ORIGIN=https://jotter.example
+docker compose build
+docker compose up -d --no-build --pull never
 ```
 
-`-t jotter:local` names the local image; `JOTTER_IMAGE` selects it in the same Compose file. Nothing is published. No host mise, Python, Node, pnpm, Go, or build identity inputs are needed. The product version comes from `package.json`; the revision reports `dev`. Rebuild and repeat the start command to apply source changes, following the [backup and upgrade procedure](release.md#upgrade-and-rollback).
-
-The same Compose file also describes the optional source build. From the checkout, `JOTTER_IMAGE=jotter:local JOTTER_PUBLIC_ORIGIN=https://jotter.example docker compose build` replaces the plain Docker build command above. Deployment managers can use it without separate build configuration. Published-image users need only the downloaded Compose file and always start with `--no-build`.
+[`compose.yaml`](../compose.yaml) owns the build context, platform, and arguments; `JOTTER_IMAGE` names the local image. Nothing is published. No host mise, Python, Node, pnpm, Go, or build identity inputs are needed. The product version comes from `package.json`; the revision reports `dev`. Rebuild and repeat the start command to apply source changes, following the [backup and upgrade procedure](release.md#upgrade-and-rollback).
 
 ## Configuration and operations
 
@@ -49,18 +48,7 @@ Existing bind-mount deployments must retain their original mount or stop the ser
 
 ## Without Compose
 
-Docker can run either image directly. On Linux amd64, select the published image below or replace it with `jotter:local` after building:
-
-```sh
-docker run -d --name jotter --restart unless-stopped \
-  -p 127.0.0.1:8080:8080 \
-  -v jotter_data:/data \
-  -e AUTH_DISABLED=true \
-  -e JOTTER_PUBLIC_ORIGIN=https://jotter.example \
-  ghcr.io/muatasim-aswad/jotter:v1.0.1
-```
-
-Docker pulls the image if missing and creates the named volume. This minimal command uses the same data volume as default Compose; stop and remove the existing container before switching between them. Compose additionally supplies filesystem restrictions, resource limits, and log rotation.
+For another container manager or a direct Docker invocation, translate the runtime settings from [`compose.yaml`](../compose.yaml): image, environment, loopback port, data volume, user, filesystem restrictions, resource limits, and log rotation. Retain the existing data volume and stop the previous container before switching managers. [Configuration](configuration.md) documents the application settings.
 
 ## Releases and upgrades
 

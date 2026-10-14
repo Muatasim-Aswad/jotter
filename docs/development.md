@@ -46,7 +46,7 @@ GitHub Actions runs the same `mise run verify` command on pushes and pull reques
 
 ## Build a Docker image
 
-Follow [Build from source](deployment.md#build-from-source). `docker build --platform linux/amd64 -t jotter:local .` builds the web assets and server inside Docker; no host mise, Python, Node, pnpm, or Go is required. It publishes nothing and reports revision `dev`.
+Follow [Build from source](deployment.md#build-from-source). Compose reads the build settings from `compose.yaml`; no host mise, Python, Node, pnpm, or Go is required. The build publishes nothing and reports revision `dev`.
 
 ## Container verification
 
