@@ -4,13 +4,24 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [1.0.2]
+
 ### Fixed
 
 - Prevented a WebSocket handshake from missing a concurrent committed update.
 
 ### Changed
 
-- Future container releases use GHCR only; Docker/OCI exports stay internal to CI instead of becoming release downloads.
+- Container releases use GHCR only; Docker/OCI exports stay internal to CI instead of becoming release downloads.
+- Simplified project setup and deployment instructions, added srvr deployment guidance, and added a social preview.
+
+### Security
+
+- Updated Vite to 8.3.3 to address three development-server editor-launch advisories.
+
+### Validation
+
+- Real-device desktop/Android keyboard, share-sheet, private HTTPS, offline-launch, and two-device checks remain pending; automated Chromium tests do not establish real-device behavior.
 
 ## [1.0.1]
 
@@ -35,6 +46,7 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 One scratchpad behind a trusted private HTTPS boundary; no built-in login, history, automatic merge, or multi-process deployment. Chrome desktop and Android are the supported browser targets; other binary/container platforms are untested. The release gate includes automated Chromium, Go race, persistence, restore, dependency, and secret checks. Actual candidate results belong to release evidence. Desktop/Android keyboard, share sheet, private HTTPS, offline launch, and two-device checks remain required before release; mobile emulation alone does not establish real-device behavior.
 
-[Unreleased]: https://github.com/Muatasim-Aswad/jotter/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/Muatasim-Aswad/jotter/compare/v1.0.2...HEAD
 [1.0.0]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.0
 [1.0.1]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.1
+[1.0.2]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.2

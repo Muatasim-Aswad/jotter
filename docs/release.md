@@ -30,7 +30,7 @@ The publisher uploads only the public assets from the verified CI bundle to a dr
 Use a verified release digest or the retained locally tested image; never rebuild the old version for rollback. A local version tag can be inspected with:
 
 ```sh
-export JOTTER_IMAGE=ghcr.io/muatasim-aswad/jotter:v1.0.1
+export JOTTER_IMAGE=ghcr.io/muatasim-aswad/jotter:v1.0.2
 docker image inspect "$JOTTER_IMAGE" --format '{{.Id}}'
 ```
 
