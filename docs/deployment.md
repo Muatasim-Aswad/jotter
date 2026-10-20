@@ -8,7 +8,7 @@ Requires Docker with Compose:
 
 ```sh
 mkdir -p jotter && cd jotter
-curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.1/compose.yaml
+curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.2/compose.yaml
 JOTTER_PUBLIC_ORIGIN=https://jotter.example docker compose up -d --no-build
 ```
 
@@ -36,7 +36,7 @@ Jotter supports [srvr 0.2.0 or newer](https://github.com/Muatasim-Aswad/srvr/blo
 
 ```sh
 mkdir -p ~/services/jotter && cd ~/services/jotter
-curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.1/compose.yaml
+curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.2/compose.yaml
 (umask 077; printf '%s\n' 'JOTTER_PUBLIC_ORIGIN=https://jotter.example' > .env)
 docker compose --env-file .env create --no-build jotter
 srvr add jotter --kind image --workdir "$PWD" \

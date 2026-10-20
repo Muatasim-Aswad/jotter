@@ -31,7 +31,7 @@ The process sets a restrictive file-creation mask. The data directory is `0700`,
 
 | Variable | Purpose |
 | --- | --- |
-| `JOTTER_IMAGE` | Optional image digest or tag; defaults to `ghcr.io/muatasim-aswad/jotter:v1.0.1`. Set `jotter:local` after building from source. |
+| `JOTTER_IMAGE` | Optional image digest or tag; defaults to `ghcr.io/muatasim-aswad/jotter:v1.0.2`. Set `jotter:local` after building from source. |
 | `JOTTER_HOST_PORT` | Loopback host port; defaults to `8080`. |
 | `JOTTER_PUBLIC_ORIGIN` | The private HTTPS origin passed into the container. |
 | `JOTTER_LOG_LEVEL` | Optional log threshold; defaults to `info`. |
