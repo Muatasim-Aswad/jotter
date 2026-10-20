@@ -4,7 +4,7 @@ Run one Linux amd64 instance with local SQLite storage. Configure a trusted priv
 
 ## Published image
 
-Requires Docker with Compose. Download the Compose file and start the published image; no clone or build tools are required:
+Requires Docker with Compose:
 
 ```sh
 mkdir -p jotter && cd jotter
@@ -12,11 +12,11 @@ curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.1/compo
 JOTTER_PUBLIC_ORIGIN=https://jotter.example docker compose up -d --no-build
 ```
 
-Compose pulls `ghcr.io/muatasim-aswad/jotter:v1.0.1` if missing and creates local named volume `jotter_data` with the required ownership. No host data directory or `sudo` setup is needed.
+Compose pulls the published image and creates `jotter_data` with the required ownership. No clone, build tools, or host data directory are needed.
 
 ## Build from source
 
-Requires Git and Docker with Compose. The Dockerfile builds the web assets and server inside Docker:
+Requires Git and Docker with Compose:
 
 ```sh
 git clone https://github.com/Muatasim-Aswad/jotter.git
@@ -26,13 +26,52 @@ docker compose build
 docker compose up -d --no-build --pull never
 ```
 
-[`compose.yaml`](../compose.yaml) owns the build context, platform, and arguments; `JOTTER_IMAGE` names the local image. Nothing is published. No host mise, Python, Node, pnpm, Go, or build identity inputs are needed. The product version comes from `package.json`; the revision reports `dev`. Rebuild and repeat the start command to apply source changes, following the [backup and upgrade procedure](release.md#upgrade-and-rollback).
+Docker builds the web assets and server; no host toolchains are needed. The version comes from `package.json`; the revision reports `dev`. Rebuild and repeat the start command for source changes, following [backup and upgrade](release.md#upgrade-and-rollback).
+
+## Deploy with srvr
+
+Jotter supports [srvr 0.2.0 or newer](https://github.com/Muatasim-Aswad/srvr/blob/main/docs/install.md) for image or source deployments, health checks, and named-volume backups. Choose one setup for a new deployment.
+
+### Published image
+
+```sh
+mkdir -p ~/services/jotter && cd ~/services/jotter
+curl -fsSLO https://raw.githubusercontent.com/Muatasim-Aswad/jotter/v1.0.1/compose.yaml
+(umask 077; printf '%s\n' 'JOTTER_PUBLIC_ORIGIN=https://jotter.example' > .env)
+docker compose --env-file .env create --no-build jotter
+srvr add jotter --kind image --workdir "$PWD" \
+  --env-file "$PWD/.env" --data-volume jotter_data \
+  --health http://127.0.0.1:8080/health/ready \
+  --url https://jotter.example --start --backup -y
+```
+
+### From source
+
+```sh
+mkdir -p ~/services
+git clone https://github.com/Muatasim-Aswad/jotter.git ~/services/jotter
+cd ~/services/jotter
+(umask 077; printf '%s\n' 'JOTTER_PUBLIC_ORIGIN=https://jotter.example' 'JOTTER_IMAGE=jotter:local' > .env)
+docker volume create --label com.docker.compose.project=jotter \
+  --label com.docker.compose.volume=data jotter_data
+srvr add jotter --kind git --branch main --workdir "$PWD" \
+  --env-file "$PWD/.env" --data-volume jotter_data \
+  --health http://127.0.0.1:8080/health/ready \
+  --version-url http://127.0.0.1:8080/version.json \
+  --url https://jotter.example --start --backup -y
+```
+
+Both setups prepare the volume before srvr starts Jotter, checks readiness, and backs up its data. Use your private origin in `.env` and `--url`. If changing the port, update the proxy and health/version URLs too.
+
+For an existing deployment, register without `--start`, retaining its env file, project name (`--project`), and volume name (`--data-volume`). Source checkouts must be clean.
+
+Check health with `srvr health jotter`; back up with `srvr backup jotter`. Update source deployments with `srvr update jotter`, or image deployments with `srvr update jotter --image "ghcr.io/muatasim-aswad/jotter:<version>"`, choosing a verified tag or digest. See srvr’s [updates and rollback](https://github.com/Muatasim-Aswad/srvr/blob/main/docs/updates.md) and [off-server backups](https://github.com/Muatasim-Aswad/srvr/blob/main/docs/backups.md).
 
 ## Configuration and operations
 
-Set the origin for every Compose command. For repeated use, export `JOTTER_PUBLIC_ORIGIN` and any overrides in your shell, or save them in an ignored mode `0600` `.env` beside `compose.yaml`; [`.env.example`](../.env.example) lists the [available settings](configuration.md#compose-variables). Source deployments must also retain `JOTTER_IMAGE=jotter:local`.
+For every Compose command, export `JOTTER_PUBLIC_ORIGIN` and overrides, or save them in a mode `0600` `.env` beside `compose.yaml`. Source deployments also need `JOTTER_IMAGE=jotter:local`. See [`.env.example`](../.env.example) and [configuration](configuration.md).
 
-Compose stores ports, storage, environment, restart policy, resource limits, and security settings in one file. With your settings loaded:
+With your settings loaded:
 
 ```sh
 docker compose ps
@@ -40,27 +79,27 @@ docker compose logs -f jotter
 curl -fsS http://127.0.0.1:8080/health/ready
 ```
 
-Terminate private HTTPS outside the container and proxy to `127.0.0.1:8080`. Preserve the configured public `Host` header and WebSocket upgrades; the application rejects unexpected hosts and origins. SQLite must use local storage; multiple replicas and network filesystems are unsupported.
+Proxy private HTTPS to `127.0.0.1:8080`, preserving the configured public `Host` and WebSocket upgrades. Unexpected hosts and origins are rejected. SQLite requires local storage; replicas and network filesystems are unsupported.
 
-The container runs as `10001:10001` with a read-only root, dropped capabilities, resource limits, and bounded logs. Writable paths are `/data` and a small temporary filesystem. Readiness probes SQLite; liveness reports the running HTTP process. The named volume survives container replacement and `docker compose down`; never run `docker compose down -v` against live data.
+The container runs as `10001:10001` with a read-only root, writable `/data` and temporary storage, dropped capabilities, resource limits, and bounded logs. Readiness checks SQLite; liveness checks the HTTP process. The volume survives replacement and `docker compose down`; never use `down -v` against live data.
 
-Existing bind-mount deployments must retain their original mount or stop the service and copy the complete data directory into the new volume with ownership preserved before starting. Changing the mount alone does not migrate notes. Keep a verified backup before changing storage.
+For existing bind mounts, keep the mount or stop Jotter and copy the complete data directory into the new volume, preserving ownership. Back up first; changing the mount alone does not migrate notes.
 
 ## Without Compose
 
-For another container manager or a direct Docker invocation, translate the runtime settings from [`compose.yaml`](../compose.yaml): image, environment, loopback port, data volume, user, filesystem restrictions, resource limits, and log rotation. Retain the existing data volume and stop the previous container before switching managers. [Configuration](configuration.md) documents the application settings.
+For another manager or direct Docker use, preserve the image, environment, loopback port, volume, user, filesystem restrictions, resource limits, and logging settings from [`compose.yaml`](../compose.yaml). Stop the previous container and retain its data volume when switching managers.
 
 ## Releases and upgrades
 
-The [published image](https://github.com/Muatasim-Aswad/jotter/pkgs/container/jotter) can be pulled anonymously. Prefer a verified digest from the [release](https://github.com/Muatasim-Aswad/jotter/releases); version and full-commit tags identify releases, while `latest` is mutable. Set `JOTTER_IMAGE` to your accepted tag or digest. With your settings loaded:
+Pull the [published image](https://github.com/Muatasim-Aswad/jotter/pkgs/container/jotter) anonymously. Set `JOTTER_IMAGE` to a verified [release](https://github.com/Muatasim-Aswad/jotter/releases) digest or tag; `latest` is mutable. With settings loaded:
 
 ```sh
 docker compose pull --policy always jotter
 docker compose up -d --no-build --pull never
 ```
 
-Release tooling handles build metadata, archive creation, and verification separately from ordinary source builds. Published images already embed identity and expose it at `/about`. The About view compares the running PWA with uncached `/version.json` metadata and offers Reload when a different build is deployed.
+Check build identity at `/about`; it offers Reload when a different build is deployed.
 
-GHCR is the only image distribution path for future releases. GitHub releases retain the Linux amd64 binary archive, LICENSE, source archive, checksums and provenance. Existing immutable releases keep their legacy image archives. Download the complete asset set from the matching release and run `sha256sum -c SHA256SUMS` before use. The binary uses the same [environment configuration](configuration.md) and private HTTPS boundary; inspect it with `jotter --version` and `jotter build-info`. Other platforms are untested.
+Images are distributed through GHCR. GitHub releases provide Linux amd64 binaries, source, LICENSE, checksums, and provenance; older immutable releases retain legacy image archives. Download the matching asset set and run `sha256sum -c SHA256SUMS`. Binaries use the same [configuration](configuration.md) and private HTTPS boundary; inspect them with `jotter --version` and `jotter build-info`. Other platforms are untested.
 
-Before replacement, follow the [consistent-backup and verified-restore procedure](release.md). Afterward, check Compose health, loopback and private HTTPS readiness, build identity, data ownership, logs, and restart persistence. Keep the previous image digest and verified safety copy for rollback. Keep credentials, databases, and backups outside Git.
+Follow [backup, restore, and rollback](release.md) before upgrading. Afterward, check health over loopback and private HTTPS, build identity, ownership, logs, and restart persistence. Retain the previous image digest and verified backup; keep credentials, databases, and backups outside Git.

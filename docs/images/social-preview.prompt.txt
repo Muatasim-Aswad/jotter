@@ -1,0 +1,10 @@
+Generated with the built-in image_gen tool. Export: 1280 × 640 PNG, opaque, under 1 MB.
+
+Use case: ads-marketing
+Asset type: GitHub repository social preview for Jotter, wide landscape 2:1 aspect ratio, 1280 by 640 pixels.
+Primary request: Create a beautifully composed, quiet, premium typographic image for a minimal self-hosted scratchpad app.
+Brand context: Jotter opens straight into writing, works offline and syncs text across devices. Existing app uses charcoal #1b1d1f, warm ivory #cfccc4, and an amber #f6bd60 text cursor. Its existing icon consists of three horizontal ivory text bars, top two equal long bars and the bottom a shorter left aligned bar, in a dark rounded square.
+Style: restrained editorial typography and subtly dimensional paper-like panels, crisp deliberate spacing, refined developer-tool identity, no loud gradients or neon.
+Composition: landscape with generous safe margins. Left half has the small existing three-bar mark above a very large warm-white word "Jotter", then the exact tagline split into two lines: "One place to" and "jot things down." Use a confident clean sans-serif for Jotter, warm readable monospace for supporting text. Right half shows an abstract dark scratchpad page, almost front-facing, understated depth, containing only a few clean warm-gray text lines with the exact words "A thought.", "A link.", "A little reminder." vertically spaced like a real plain-text editor, and a small amber caret after the last line. The panel is a subtle visual metaphor for writing, not a busy app mockup; no toolbars, no menus. At bottom left, small understated text reads "Offline first. Self-hosted. In sync."
+Palette: solid deep charcoal backdrop, warm off-white lettering, tiny amber accent, extremely subtle paper grain and soft realistic shadows only.
+Constraints: text must be spelled exactly. Keep all content at least 70 pixels away from edges. No extra text, no browser chrome, no device frames, no people, no photography, no invented logos, no watermark. Make it readable at social-card thumbnail size. Opaque background.

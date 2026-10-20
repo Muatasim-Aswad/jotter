@@ -6,11 +6,11 @@ Jotter is a minimal, focused scratchpad that opens straight into writing. Captur
 
 <img src="docs/images/editor.png" alt="Jotter’s mobile editor with synthetic groceries, a reminder, and a thought for later" width="390" />
 
-Write offline, sync when connected, and share text or links into it from Android. Self-hosted and built for Chrome on desktop and Android.
+Self-hosted, with offline writing, sync when connected, and Android sharing for text and links.
 
 > [!WARNING]
 >
-> Jotter has no built-in login. Deploy behind a trusted private HTTPS access boundary. Anyone who can reach the service can access the scratchpad. Production requires `AUTH_DISABLED=true` to acknowledge that boundary.
+> Jotter currently has no built-in login. Deploy behind a trusted private HTTPS access boundary. Anyone who can reach the service can access the scratchpad. Production requires `AUTH_DISABLED=true` to acknowledge that boundary.
 
 ## Run locally
 
@@ -26,7 +26,9 @@ Requires [mise](https://mise.jdx.dev/), Python 3.11+, and the pinned toolchains.
 
 ## Deploy
 
-Use the [published image](docs/deployment.md#published-image): download one Compose file, set your private HTTPS origin, and start. Or [build from source](docs/deployment.md#build-from-source) through the same Compose file. Docker manages persistent storage; no host build tools or data-directory setup are required. The [limitations](docs/limitations.md) describe supported browsers, offline recovery, and backup requirements.
+Use the published image: download one Compose file, set your private HTTPS origin, and start. Or build from source through the same Compose file. Docker manages persistent storage; no host build tools or data-directory setup are required. The [limitations](docs/limitations.md) describe browser verification, offline recovery, and backup requirements.
+
+For managing Jotter alongside other self-hosted apps, you can use [srvr](https://github.com/Muatasim-Aswad/srvr).
 
 ## Development
 

@@ -123,6 +123,8 @@ docs/configuration.md
 docs/deployment.md
 docs/development.md
 docs/images/editor.png
+docs/images/social-preview.png
+docs/images/social-preview.prompt.txt
 docs/limitations.md
 docs/protocol.md
 docs/release.md

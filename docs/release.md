@@ -54,7 +54,7 @@ docker run --rm --pull never --user 0:0 \
 docker compose start jotter
 ```
 
-These commands assume Docker runs locally on Linux, the service container exists, and the [Compose settings](deployment.md#configuration-and-operations) are loaded. Use a new backup name each time. If copying fails, keep the service stopped until the failure is resolved. A consistent local copy is not an off-server backup. Choose an encrypted off-server destination and retention policy appropriate to the notes; automatic backup scheduling is outside V1. Older content can remain in backups and browser replicas after it changes on the server.
+These commands assume Docker runs locally on Linux, the service container exists, and the [Compose settings](deployment.md#configuration-and-operations) are loaded. Use a new backup name each time. If copying fails, keep the service stopped until the failure is resolved. A consistent local copy is not an off-server backup. Choose an encrypted off-server destination and retention policy appropriate to the notes; automatic backup scheduling is not built in. Older content can remain in backups and browser replicas after it changes on the server.
 
 ## Verify a staging restore
 

@@ -4,11 +4,12 @@ Jotter V1 deliberately optimizes for one private scratchpad and a small trusted 
 
 - There is no application authentication, authorization, registration, role model, OAuth, password reset, or public sharing. A trusted private access boundary is mandatory.
 - One Go process owns one SQLite file on local storage. Multiple replicas, network filesystems, and active-active operation are unsupported.
-- There is one visible scratchpad and one owner. Additional scratchpads, users, read-only shares, public endpoints, and terminal/native clients are deferred.
+- There is one visible scratchpad and one owner. Multiple scratchpads, users, read-only shares, and public endpoints are not available.
 - There is no history, restore UI, trash, clear/delete action, automatic merge, CRDT, operation log, or last-write-wins behavior. Conflicts require an explicit choice.
-- The current accepted content cannot be recovered after an intentional or accidental edit, an empty edit, SQLite corruption, loss of the server disk, or browser storage eviction. Manual consistent pre-upgrade copies are required; automated and off-server backups are deferred.
+- The current accepted content cannot be recovered after an intentional or accidental edit, an empty edit, SQLite corruption, loss of the server disk, or browser storage eviction. Manual consistent pre-upgrade copies are required; automated and off-server backups are not built in.
 - Mutation receipts and unresolved conflicts are correctness state, not user-visible history. Receipts are bounded to 1,000 per scratchpad and seven days.
-- Browser support is current Chrome on Android and desktop. Safari, Firefox, native apps, widgets, and terminal clients are not release targets.
+- Browser verification currently focuses on Chrome on desktop and Android. Other browsers and iOS have not yet been verified; installation and sharing features vary by browser and platform.
+- There are no native apps, widgets, or terminal clients.
 - Opening the editor restores its cursor and requests focus and the virtual keyboard on every device. Browser interaction requirements can still keep the keyboard closed until a tap; keyboard visibility requires real-device verification.
 - Background Sync is not used for correctness. Pending work synchronizes while the foreground app is open and connectivity returns.
 - Remote updates do not promise to preserve the browser's native undo stack. Cursor, selection, and scroll position are device-local and never synchronized.
@@ -17,8 +18,6 @@ Jotter V1 deliberately optimizes for one private scratchpad and a small trusted 
 - Rollback changes only the local image and is safe only while the migrated schema remains compatible. Automatic down-migration is not supported.
 
 Published binaries and containers support Linux amd64 only. Other targets are untested.
-
-The architecture preserves stable scratchpad identity and clear package boundaries so deferred authentication, recovery snapshots, a small number of additional scratchpads, and additional clients can be added without replacing the V1 core.
 
 ## Data, network, and retention
 
