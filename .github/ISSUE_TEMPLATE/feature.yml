@@ -1,4 +1,4 @@
-name: Focused improvement
+name: Feature request
 description: Propose an improvement to writing or finding the same text across devices.
 body:
   - type: markdown
