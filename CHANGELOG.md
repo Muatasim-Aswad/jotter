@@ -4,6 +4,12 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-13
+
+### Security
+
+- Updated frontend, SQLite, migration, container, and CI dependencies; refreshed vulnerable build dependencies.
+
 ## [1.0.2]
 
 ### Fixed
