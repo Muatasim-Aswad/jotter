@@ -44,6 +44,8 @@ Set `JOTTER_PLAYWRIGHT_OUTPUT` to redirect Playwright traces and artifacts. Brow
 
 GitHub Actions runs the same `mise run verify` command on pushes and pull requests. Failed browser runs retain traces for seven days. CI also scans push/PR ranges for secrets with redacted Gitleaks output. Actions are pinned to commit hashes; validation permissions are read-only. Only the dependent release publishing job receives write permissions.
 
+The audit temporarily exempts `deepmerge` advisory GHSA-gcqx-w48m-w2h4 in `pnpm-workspace.yaml`. The development-only dependency comes through Workbox's Rollup resolver, where it merges trusted plugin defaults rather than application input. No patched release is available; remove the exception when one ships. Every other advisory, including low-severity findings, remains blocking.
+
 ## Build a Docker image
 
 Follow [Build from source](deployment.md#build-from-source). Compose reads the build settings from `compose.yaml`; no host mise, Python, Node, pnpm, or Go is required. The build publishes nothing and reports revision `dev`.

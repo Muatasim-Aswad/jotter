@@ -4,11 +4,16 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 ## [Unreleased]
 
-## [1.0.3] - 2026-11-13
+## [1.0.3] - 2026-11-14
 
 ### Security
 
 - Updated frontend, SQLite, migration, container, and CI dependencies; refreshed vulnerable build dependencies.
+- Temporarily exempted the unpatched, low-severity `deepmerge` build-tool advisory GHSA-gcqx-w48m-w2h4; all other audit findings remain blocking.
+
+### Validation
+
+- Real-device desktop/Android and two-device checks remain pending; this release updates dependencies and build inputs.
 
 ## [1.0.2]
 
@@ -52,7 +57,8 @@ Notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 
 One scratchpad behind a trusted private HTTPS boundary; no built-in login, history, automatic merge, or multi-process deployment. Chrome desktop and Android are the supported browser targets; other binary/container platforms are untested. The release gate includes automated Chromium, Go race, persistence, restore, dependency, and secret checks. Actual candidate results belong to release evidence. Desktop/Android keyboard, share sheet, private HTTPS, offline launch, and two-device checks remain required before release; mobile emulation alone does not establish real-device behavior.
 
-[Unreleased]: https://github.com/Muatasim-Aswad/jotter/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/Muatasim-Aswad/jotter/compare/v1.0.3...HEAD
 [1.0.0]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.0
 [1.0.1]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.1
 [1.0.2]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.2
+[1.0.3]: https://github.com/Muatasim-Aswad/jotter/releases/tag/v1.0.3

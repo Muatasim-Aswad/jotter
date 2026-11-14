@@ -4,3 +4,9 @@ packages:
 
 onlyBuiltDependencies:
   - esbuild
+
+auditConfig:
+  ignoreGhsas:
+    # deepmerge via Workbox/Rollup merges trusted build defaults only.
+    # Remove when a patched deepmerge release is available.
+    - GHSA-gcqx-w48m-w2h4
