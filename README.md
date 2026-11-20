@@ -36,10 +36,12 @@ See [development](docs/development.md) for setup and `mise run verify`, the shar
 
 ## Documentation
 
-- [Architecture and decisions](docs/architecture.md) · [Domain glossary](CONTEXT.md)
-- [Development](docs/development.md) · [Contributing](CONTRIBUTING.md)
-- [Protocol and OpenAPI](docs/protocol.md) · [Configuration](docs/configuration.md)
-- [Deployment](docs/deployment.md) · [Backup, restore, and releases](docs/release.md)
-- [Limitations and data handling](docs/limitations.md) · [Security](SECURITY.md) · [Changelog](CHANGELOG.md)
+- [Deployment](docs/deployment.md) — Run Jotter locally or deploy it behind private HTTPS.
+- [Backup, restore, and releases](docs/release.md) — Back up your notes, recover data, or roll back an upgrade.
+- [Limitations and data handling](docs/limitations.md) — Check what Jotter supports and where it stores data.
+- [Security](SECURITY.md) — Understand the private access boundary and report vulnerabilities.
+- [Development](docs/development.md) — Set up a checkout, run checks, and find contribution instructions.
+- [Architecture](docs/architecture.md) — Find where the code lives and understand how synchronization works.
+- [Changelog](CHANGELOG.md) — See what changed in each release.
 
 Licensed under [MIT](LICENSE). Bundled validator attribution is in [third-party notices](THIRD_PARTY_NOTICES.md).

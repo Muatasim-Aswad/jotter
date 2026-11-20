@@ -1,5 +1,7 @@
 # Development and testing
 
+See [Contributing](../CONTRIBUTING.md) for pull request expectations.
+
 ## Prerequisites
 
 Install `mise`, Python 3.11+, Docker with Compose and Buildx 0.13+ (multiple exporters), and the system libraries required by Playwright Chromium. `mise.toml`/`mise.lock` pin Go, Node, pnpm, Staticcheck, Gitleaks, actionlint, and regctl; pnpm uses the committed dependency lockfile.
