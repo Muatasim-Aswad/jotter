@@ -2,6 +2,21 @@
 
 Jotter V1 is a single-origin PWA backed by one Go process and one SQLite database. The browser renders immediately from durable local state, then reconciles with the server. The server is authoritative for committed revisions; dirty browser content is never silently replaced.
 
+## Repository layout
+
+```text
+jotter/
+├── apps/
+│   ├── server/    Go server with SQLite storage
+│   └── web/       TypeScript and Vite PWA with IndexedDB storage
+├── packages/
+│   └── protocol/  OpenAPI contract, TypeScript wire types, and shared fixtures
+├── scripts/       Verification and release tooling
+└── docs/          Project guides and architecture decisions
+```
+
+See the [protocol guide](protocol.md) for the API and sync contract, the [domain glossary](../CONTEXT.md) for terminology, and [architecture decisions](adr/) for design rationale.
+
 ## Repository boundaries
 
 - `packages/protocol` owns the authoritative OpenAPI contract, generated TypeScript wire types and static validators, content codecs, and shared fixtures. Generated Go equivalents and the embedded schema live in `apps/server/internal/protocol`; both languages execute the same fixtures.
