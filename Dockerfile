@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
 
-FROM node:26.13.0-alpine@sha256:8996bb5821d62a8fd9bb27c1cb07462f3fdce6e47d640c6a881ead0b064ce216 AS web-build
+FROM node:26.13.1-alpine@sha256:6bd9ab43c0ec0190ca7b2d193906cb8b7edf6e7f4afa43ddeccd6452710bffb5 AS web-build
 WORKDIR /src
 RUN npm install --global pnpm@10.34.5
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -14,7 +14,7 @@ COPY scripts/release/web-notices.mjs scripts/release/web-notices.mjs
 ARG APP_VERSION APP_REVISION APP_COMMIT_TIME APP_BUILD_TIME SOURCE_DATE_EPOCH
 RUN pnpm --filter @jotter/web build
 
-FROM golang:1.27.3-alpine@sha256:fa3d596898d9f126af7c01d14ee7597bab3f39cccf392ef36b69fe77cd681f18 AS server-build
+FROM golang:1.27.4-alpine@sha256:70bd7ddea8b6cbe5d6943cde279d6b67feb10cc924fb9100d1d8757c1575b280 AS server-build
 WORKDIR /src/apps/server
 COPY apps/server/go.mod apps/server/go.sum ./
 RUN go mod download
@@ -26,7 +26,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=readonly -buildvcs=false
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go run /src/scripts/release/go-notices.go > /out/DEPENDENCY-NOTICES.txt \
     && cat internal/webassets/dist/licenses.txt >> /out/DEPENDENCY-NOTICES.txt
 
-FROM alpine:3.24.3@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS runtime
+FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS runtime
 RUN addgroup -S -g 10001 jotter \
     && adduser -S -D -H -u 10001 -G jotter jotter \
     && sed -i 's/^jotter:[^:]*:[^:]*:/jotter:!:0:/' /etc/shadow \
